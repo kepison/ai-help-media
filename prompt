@@ -1,0 +1,76 @@
+PROMPT START
+Ты — Senior Full-Stack Developer. Твоя задача: создать с нуля проект AI Media Network OS (MVP Edition) за один проход.
+Стек: Node.js + Express + SQLite (Drizzle ORM) для бэкенда, React + Vite + TailwindCSS для фронтенда.
+Язык: TypeScript.
+ГЛАВНОЕ ПРАВИЛО: Никакой лишней сложности. Только 5 критических функций. Если функции нет в списке — не создавай её. Дизайн должен быть чистым, темным, минималистичным (как Telegram Desktop или Discord).
+1. Структура проекта
+Создай монорепозиторий с папками:
+/backend (server, db, ai logic)
+/frontend (ui, pages, hooks)
+/shared (types, constants)
+2. База данных (SQLite via Drizzle)
+Создай схему schema.ts только с необходимыми таблицами:
+api_keys: id, provider (groq, openrouter, ollama), key, is_active, created_at.
+chat_sessions: id, title, agent_type, created_at.
+messages: id, session_id, role (user/assistant), content, metadata (json for parsed analytics/scripts), created_at.
+channels: id, name, platform (youtube/tiktok), raw_data (text), parsed_metrics (json), last_analyzed.
+Никаких лишних таблиц для экспериментов, сетей каналов или сложных юзеров.
+3. Backend (Node.js + Express)
+Реализуй следующие эндпоинты в src/routes:
+POST /api/chat: Принимает { message, agentType, sessionId }.
+Логика: Роутит запрос в AI Gateway в зависимости от agentType.
+Агенты: director (план), analytics (парсинг текста в JSON), scriptwriter (генерация скрипта), monetization (план заработка).
+Возвращает стриминговый ответ (SSE) или полный ответ.
+POST /api/keys: Сохранение API ключа.
+GET /api/keys: Получение списка ключей (скрыть значение, показать первые 4 символа).
+POST /api/analytics/parse: Специальный эндпоинт для парсинга сырого текста из YouTube Studio в структурированный JSON (subs, views, growth).
+AI Gateway (src/ai/gateway.ts):
+Поддержка провайдеров: Groq (приоритет, модели: llama-3.3-70b, qwen-2.5-coder), OpenRouter, Ollama (локально).
+Логика fallback: если Groq упал → пробовать OpenRouter → потом Ollama.
+Системные промты для каждого агента жестко прописаны в коде (не в БД):
+Analytics Agent: "Ты аналитик. Прими сырой текст статистики, извлеки цифры, посчитай рост, дай 3 совета."
+Scriptwriter: "Пиши скрипты для YouTube. Формат: [Time] [Visual] [Audio]. В конце добавь призыв к действию."
+Monetization: "Дай план заработка $30/неделю для ниши X. Только конкретные шаги."
+4. Frontend (React + Vite + Tailwind)
+Глобальное состояние (Context API):
+Создать AppProvider, который хранит:
+activeSession: текущий чат (чтобы не терялся при переключении!).
+messages: массив сообщений активной сессии.
+isProcessing: статус загрузки.
+Критично: При переключении между вкладками (Brain ↔ Analytics ↔ Settings) состояние чата НЕ должно сбрасываться.
+Страницы (Роутинг через простое условие или React Router):
+Brain (Главная):
+Интерфейс чата (как в Telegram).
+Сверху: Dropdown выбора агента (Director, Analytics, Scriptwriter, Monetization).
+Снизу: Поле ввода с авто-фокусом. Поддержка Enter для отправки.
+Отображение сообщений: Пузыри пользователя справа, ИИ слева.
+Для скриптов: Кнопка "COPY" внутри сообщения ИИ.
+Для аналитики: Автоматическая рендеринг таблицы, если ИИ вернул JSON.
+Analytics (Упрощенная):
+Большое текстовое поле: "Вставь данные из YouTube Studio сюда".
+Кнопка "Анализировать".
+Результат: Таблица метрик + вывод ИИ. Сохраняет результат в историю чата.
+Settings:
+Только секция "API Keys".
+Инпуты для Groq, OpenRouter, Ollama URL.
+Кнопка "Save". Индикация статуса подключения (зеленая точка если ОК).
+UI Компоненты:
+Темная тема по умолчанию (bg-slate-900, text-slate-100).
+Шрифты: Inter или System UI.
+Анимации: Плавное появление сообщений.
+Кнопка COPY: Должна быть большой, заметной, с_feedback ("Скопировано!").
+5. Инструкция по запуску
+Сгенерируй файлы:
+package.json (root, backend, frontend).
+vite.config.ts, tailwind.config.js.
+drizzle.config.ts.
+Все исходные файлы .ts, .tsx.
+.env.example.
+README.md с командой npm install && npm run dev.
+6. Требования к коду
+Код должен быть рабочим сразу после npm install.
+Обработка ошибок: если API ключа нет, показать понятное сообщение "Добавьте ключ Groq в настройках".
+Никаких моков. Реальная логика запросов к API.
+Типизация TypeScript строгая.
+Начни генерацию файлов прямо сейчас. Сначала структура, затем бэкенд, затем фронтенд.
+PROMPT END
